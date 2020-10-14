@@ -19,13 +19,13 @@ done
 # Prod_System_1
 foundfiles=$(find /mnt/backupsrv/weekly/Prod_System_1/ -type f -mtime -1)
 if [ "$foundfiles" = "" ]
-    then /home/backupsrv/scripts/sendemail.sh "Lost Backup archive of AIS-DON!!!" "Lost Backup archive of AIS-DON"
+    then /home/backupsrv/scripts/sendemail.sh "Lost Backup archive of Prod_System_1!!!" "Lost Backup archive of Prod_System_1"
 fi
 
 # Prod_System_2
 foundfiles=$(find /mnt/backupsrv/weekly/Prod_System_2/ -type f -mtime -1)
 if [ "$foundfiles" = "" ]
-    then /home/backupsrv/scripts/sendemail.sh "Lost archive of 1C Buxgaltery!!!" "Lost archive of 1C Buxgaltery"
+    then /home/backupsrv/scripts/sendemail.sh "Lost archive of Prod_System_1!!!" "Lost archive of Prod_System_1"
 fi
 
 /home/backupsrv/scripts/sendemail.sh "Backup archives control was done" "Backup archives control was done";
