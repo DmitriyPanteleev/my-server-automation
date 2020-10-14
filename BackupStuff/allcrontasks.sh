@@ -1,11 +1,11 @@
 #! /bin/bash
 
-# Определим цвета вывода
+# Define output colors
 RED='\e[1;31m'
 GREEN='\e[1;32m'
 NC='\e[0m'
 
-# Определим нашу функцию вывода списка всех задач cron у всех пользователей
+# Let's define our function to display a list of all cron tasks for all users
 for user in $(cut -d':' -f1 /etc/passwd); do
     usercrontab=$(crontab -l -u ${user} 2>/dev/null)
     if [ -n "${usercrontab}" ]; then
@@ -14,4 +14,3 @@ for user in $(cut -d':' -f1 /etc/passwd); do
          echo -e "${RED}====== End crontab for user ${NC}${GREEN}${user}${NC} ${RED}========${NC}\n"
     fi
 done
-
