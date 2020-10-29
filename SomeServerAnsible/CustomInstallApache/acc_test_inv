@@ -1,0 +1,5 @@
+# Ansible test inventory
+
+client ansible_port=2244 ansible_host=10.128.0.29
+
+customclient ansible_port=7744 ansible_host=10.128.0.79

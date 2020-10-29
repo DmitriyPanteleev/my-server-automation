@@ -1,0 +1,30 @@
+---
+- name: Playbook
+  hosts: "{{ variable_host | default('client') }}"
+  vars:
+    var_text_to_indexhtml: 'Apache server installed by Ansible.'
+  remote_user: Accenture
+  become: yes
+
+  tasks:
+    - name: Install, start and configure Apache
+      block:
+        - name: Installing Apache
+          yum:
+            name: httpd
+            state: latest
+        - name: Autostart Apache
+          service:
+            name: httpd
+            state: started
+            enabled: yes
+      always:
+        - name: Copying custom index
+          template:
+            src: /etc/ansible/index.html
+            dest: /var/www/html
+            owner: apache
+            group: apache
+            mode: 0644
+
+
