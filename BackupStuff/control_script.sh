@@ -25,7 +25,7 @@ fi
 # Prod_System_2
 foundfiles=$(find /mnt/backupsrv/weekly/Prod_System_2/ -type f -mtime -1)
 if [ "$foundfiles" = "" ]
-    then /home/backupsrv/scripts/sendemail.sh "Lost archive of Prod_System_1!!!" "Lost archive of Prod_System_1"
+    then /home/backupsrv/scripts/sendemail.sh "Lost archive of Prod_System_2!!!" "Lost archive of Prod_System_2"
 fi
 
 /home/backupsrv/scripts/sendemail.sh "Backup archives control was done" "Backup archives control was done";
