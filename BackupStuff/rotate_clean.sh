@@ -13,9 +13,9 @@ sleep 15
 
 # Move archives to yearly
 
-LAST_SAT=`cal | awk '{print $7}' | awk '{print $NF}' | grep -v '^$' | tail -n 1 | head -1`
+LAST_SAT=$(cal | awk '{print $7}' | awk '{print $NF}' | grep -v '^$' | tail -n 1 | head -1)
 
-DATE=`echo $(date +%e)`
+DATE=$(echo $(date +%e))
 
 if [ $DATE -eq $LAST_SAT ]
    then
