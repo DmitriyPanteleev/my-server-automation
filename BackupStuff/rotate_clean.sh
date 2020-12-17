@@ -28,8 +28,8 @@ fi
 # Cleaning script for monthly backup. Remaining a quartal.
 
 # prod_system_1
-find /mnt/backupsrv/monthly/prod_system_1/ -type f -mtime +92 -exec mv -f {} /mnt/backupsrv/temp \;
+find /mnt/backupsrv/monthly/prod_system_1/ -type f -mtime +92 -delete
 # prod_system_2
-find /mnt/backupsrv/monthly/prod_system_2/ -type f -mtime +92 -exec mv -f {} /mnt/backupsrv/temp \;
+find /mnt/backupsrv/monthly/prod_system_2/ -type f -mtime +92 -delete
 
 exit 0
