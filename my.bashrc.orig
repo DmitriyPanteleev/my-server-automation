@@ -1,0 +1,114 @@
+# My ~/.bashrc
+# 2021-02-11
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# History parameter.
+HISTSIZE=$((1024 * 1024))
+HISTFILESIZE=$HISTSIZE
+HISTTIMEFORMAT='%t%F %T%t'
+HISTCONTROL=ignoreboth
+
+# append to the history file, don't overwrite it
+# update the values of LINES and COLUMNS.
+shopt -s histappend
+shopt -s checkwinsize
+
+# make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+	# We have color support; assume it's compliant with Ecma-48
+	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+	# a case would tend to support setf rather than setaf.)
+	color_prompt=yes
+    else
+	color_prompt=
+    fi
+fi
+
+# Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+GRC="$(which grc)"
+if [ "$TERM" != dumb ] && [ -n "$GRC" ]; then
+    alias colourify="$GRC -es --colour=auto"
+    alias blkid='colourify blkid'
+    alias configure='colourify ./configure'
+    alias df='colourify df'
+    alias diff='colourify diff'
+    alias docker='colourify docker'
+    alias docker-machine='colourify docker-machine'
+    alias du='colourify du'
+    alias env='colourify env'
+    alias free='colourify free'
+    alias fdisk='colourify fdisk'
+    alias findmnt='colourify findmnt'
+    alias make='colourify make'
+    alias gcc='colourify gcc'
+    alias g++='colourify g++'
+    alias id='colourify id'
+    alias ip='colourify ip'
+    alias iptables='colourify iptables'
+    alias as='colourify as'
+    alias gas='colourify gas'
+    alias ld='colourify ld'
+    alias lsof='colourify lsof'
+    alias lsblk='colourify lsblk'
+    alias lspci='colourify lspci'
+    alias netstat='colorify netstat'
+    alias ping='colourify ping'
+    alias traceroute='colourify traceroute'
+    alias traceroute6='colourify traceroute6'
+    alias head='colourify head'
+    alias tail='colourify tail'
+    alias dig='colourify dig'
+    alias mount='colourify mount'
+    alias ps='colourify ps'
+    alias mtr='colourify mtr -t'
+    alias semanage='colourify semanage'
+    alias getsebool='colourify getsebool'
+    alias ifconfig='colourify ifconfig'
+    alias ss='colourify ss'
+fi
+
+# enable color support of ls and also add handy aliases
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias hists='history | cut -f3-'
+alias nwsshcp='/home/dpanteleev/SomeStuff/init_ssh.sh'
+
+# some usefull aliases
+alias ch='/home/dpanteleev/opt/CheatSh/cht.sh '
+
+# enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
+PS1="\[\e[0m\]┌──\[\e[0m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)/$(($(grep 'processor' /proc/cpuinfo | wc -l)*3/2)) \$(($(sed -nu "s/MemFree:[\t ]\+\([0-9]\+\) kB/\1/p" /proc/meminfo)/1024))/\$(($(sed -nu "s/MemTotal:[\t ]\+\([0-9]\+\) kB/\1/Ip" /proc/meminfo)/1024))MB\[\e[0m\] ] [ \[\e[36m\]\$(date)\[\e[0m\] ]\n├──[ \[\e[0;33m\]\u\[\e[0m\]@\h ] [ \[\e[36m\]\w\[\e[0m\\] ]\n└> \[\e[1;35m\]~\[\e[0m\] "
+source ~/.bash.d/cht.sh
