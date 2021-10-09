@@ -4,3 +4,4 @@
 2021-08-20 10:10:41 - Fix off-by-one error
 2021-09-03 12:42:12 - Add CI configuration
 2021-09-14 21:43:21 - Add .gitignore entries
+2021-10-09 08:09:39 - Add unit tests for core module
