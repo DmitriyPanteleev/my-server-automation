@@ -2,7 +2,7 @@
 
 # основные переменные
 PROXY_ADDRESS="localhost:${HTTP_PORT}"
-DEADPOOL_URL="https://tradingview-heater-dead-symbols-pool-staging.s3.amazonaws.com"
+DEADPOOL_URL="https://fakeurl-heater-dead-symbols-pool-staging.s3.amazonaws.com"
 FILE_GROUP_ROOT="/tmp/udf_root_group"
 FILE_GROUP_PRICESNAPSHOT="/tmp/udf_pricesnapshot_group"
 FILE_METRIX_PATH="/tmp/deadpool"
