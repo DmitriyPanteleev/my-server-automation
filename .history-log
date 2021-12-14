@@ -11,3 +11,4 @@
 2021-11-07 18:55:33 - Fix broken link in README
 2021-11-22 20:35:06 - Add logging to service layer
 2021-12-12 16:38:16 - Update copyright year
+2021-12-14 14:37:15 - Add .gitignore entries
