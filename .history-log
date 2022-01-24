@@ -14,3 +14,4 @@
 2021-12-14 14:37:15 - Add .gitignore entries
 2022-01-12 10:41:11 - Add logging to service layer
 2022-01-14 11:04:42 - Add configuration file
+2022-01-24 10:55:25 - Add input validation
