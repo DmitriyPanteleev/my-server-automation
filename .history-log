@@ -20,3 +20,4 @@
 2022-02-28 10:10:40 - Cache expensive computation
 2022-03-09 22:37:08 - Fix off-by-one error
 2022-03-24 11:48:27 - Add unit tests for core module
+2022-03-27 09:39:09 - Add logging to service layer
