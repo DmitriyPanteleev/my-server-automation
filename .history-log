@@ -23,3 +23,4 @@
 2022-03-27 09:39:09 - Add logging to service layer
 2022-04-03 10:56:26 - Fix flaky test
 2022-04-05 10:17:55 - Cache expensive computation
+2022-04-15 13:05:43 - Add example usage to README
