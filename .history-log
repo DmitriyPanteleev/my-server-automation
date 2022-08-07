@@ -31,3 +31,4 @@
 2022-07-12 14:29:00 - Bump version
 2022-07-15 22:59:37 - Add .gitignore entries
 2022-07-25 08:23:54 - Fix flaky test
+2022-08-07 10:25:56 - Add configuration file
