@@ -42,3 +42,4 @@
 2022-11-20 13:50:28 - Add configuration file
 2022-11-23 09:16:55 - Initial project scaffold
 2022-12-08 12:12:42 - Improve test coverage
+2022-12-26 17:03:33 - Add logging to service layer
