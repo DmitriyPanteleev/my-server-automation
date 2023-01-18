@@ -44,3 +44,4 @@
 2022-12-08 12:12:42 - Improve test coverage
 2022-12-26 17:03:33 - Add logging to service layer
 2023-01-15 19:04:34 - Bump version
+2023-01-18 20:42:20 - Add .gitignore entries
