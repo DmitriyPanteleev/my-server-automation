@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
 [ -n "$SSH_TTY" ] && [ "${BASH_SOURCE[0]}" == "${0}" ] && exec bash --rcfile "$SHELL" "$@"
 
 [ -z "$PS1" ] && return
@@ -14,12 +20,6 @@
         umask 077 && socat -u TCP4-LISTEN:$history_port,bind=127.0.0.1,reuseaddr,fork OPEN:$HOME/.bash_eternal_history,creat,append &
     }
 }
-
-# If not running interactively, don't do anything
-case $- in
-    *i*) ;;
-      *) return;;
-esac
 
 # History parameter.
 HISTSIZE=$((2048 * 2048))
@@ -47,9 +47,9 @@ if [ -n "$force_color_prompt" ]; then
         # We have color support; assume it's compliant with Ecma-48
         # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
         # a case would tend to support setf rather than setaf.)
-        color_prompt=yes
+        export color_prompt=yes
     else
-        color_prompt=
+        export color_prompt=
     fi
 fi
 
@@ -123,14 +123,15 @@ alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 alias bcat='batcat --paging=never'
 alias hists='history | cut -f3-'
-alias nwsshcp='/home/dpanteleev/SomeStuff/init_ssh.sh'
-
-# some custom functions
-bak() { cp $1 $1.$(date +%%F_%T); }
-doh() { curl -s -H 'accept: application/dns+json' "https://dns.google.com/resolve?name=$1" | jq; }
 
 # custom ssh function
 sshb() {
+    host_environment=$(ssh "$@" 'cat /etc/ansible/facts.d/main.fact | jq -r .host_environment')
+    case "$host_environment" in
+        production) PROMPT="31m" ;; # red
+        staging) PROMPT="33m" ;; # yellow
+        *) PROMPT="0m";; # default
+    esac
     local ssh="ssh -S ~/.ssh/control-socket-$(tr -cd '[:alnum:]' < /dev/urandom|head -c8)"
     local bashrc=~/.bashrc
     local history_command="rm -f ~/.bash-ssh.history"
