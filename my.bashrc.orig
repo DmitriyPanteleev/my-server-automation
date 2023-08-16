@@ -126,7 +126,6 @@ alias hists='history | cut -f3-'
 
 # custom ssh function
 sssh() {
-    export host_environment=$(ssh "$@" 'cat /etc/ansible/facts.d/main.fact | jq -r .host_environment')
     local ssh="ssh -S ~/.ssh/control-socket-$(tr -cd '[:alnum:]' < /dev/urandom|head -c8)"
     local bashrc=~/.bashrc
     local history_command="rm -f ~/.bash-ssh.history"
@@ -161,6 +160,8 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+
+host_environment=$(cat /etc/ansible/facts.d/main.fact | jq -r .host_environment)
 
 case "$host_environment" in
     production) PS1="\[\e[31m\]┌──\[\e[31m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[31m\] ] [ \[\e[36m\]\$(date)\[\e[31m\] ]\n├──[ \[\e[0;31m\]\u\[\e[31m\]@\h ] [ \[\e[36m\]\w\[\e[31m\\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # red
