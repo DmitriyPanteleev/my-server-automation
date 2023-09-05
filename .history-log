@@ -62,3 +62,4 @@
 2023-07-28 21:21:52 - Split large function into smaller pieces
 2023-08-13 11:48:26 - Simplify conditional logic
 2023-08-16 16:16:47 - Handle edge case in parser
+2023-09-05 12:20:58 - Fix broken link in README
