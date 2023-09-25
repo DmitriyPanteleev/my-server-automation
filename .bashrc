@@ -83,13 +83,9 @@ alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 alias bcat='batcat --paging=never'
 alias hists='history | cut -f3-'
-alias bfiles='ls --human-readable --size -1 -S --classify | head -n 20'
-alias dusage='du -ah --max-depth=1 $(pwd) | sort -rh | head -n 10'
-alias outip='curl ifconfig.co'
-alias locip='ip -h a | grep inet | awk "{print $2}" | cut -d "/" -f 1 | grep -vE "127\.0\.0\.1|::1"'
+alias veros='cat /etc/*rel*'
+alias outip='curl -s ipinfo.io | jq -r .ip'
 alias totalclean='sudo find /var/log/ -type f -regex ".*log\.[1-9].*" -delete && sudo find /var/log/atop -type f -mtime +0 -delete && sudo find /var/log/container -type f -mtime +30 -delete && sudo journalctl --rotate && sudo journalctl --vacuum-time=1s && sudo docker system prune -af --volumes'
-alias dockerps='sudo docker ps --format="table{{.Names}}\t{{.Status}}\t{{.Image}}"'
-alias dockerpsg='sudo docker ps --format="table{{.Names}}\t{{.Status}}\t{{.Image}}" | grep '
 
 # Custom ssh function
 sssh() {
@@ -113,9 +109,54 @@ sssh() {
     ssh-add -L | grep -q "$(cut -f1,2 -d' ' ~/.ssh/id_rsa.pub)" || ssh-add
 }
 
+# Disk usage function
+dusage() {
+    sudo du -ah --max-depth=1 "$1" | sort -rh | head -n 10
+}
+
 # Docker log function
 dockerlog() {
     sudo journalctl -n 50 -f -u docker-"$1"
+}
+
+# Find killed docker containers function
+dockerkilled(){
+    sudo docker ps >docker.tmp; sudo cat /var/log/kern.log | grep -i "killed as"  | awk '{print $1,$7}' | while read T DOCK; do T=$(echo $T|sed "s/\..*$//"); DOCK=${DOCK#/*/}; DOCK=${DOCK:0:7}; DOCKR=$(cat docker.tmp|grep $DOCK|tail -n 1| awk '{print $NF}'); if [ -z "$DOCKR" ]; then DOCKR="$DOCK"; fi; echo "${T} $DOCKR"; done | tee killed.txt
+}
+
+# Docker ps function
+dockerps() {
+    if [ -z "$1" ]
+    then
+        sudo docker ps --format="table{{.Names}}\t{{.Status}}\t{{.Image}}"
+    else
+        sudo docker ps --format="table{{.Names}}\t{{.Status}}\t{{.Image}}" | grep "$1"
+    fi
+}
+
+# Local ips function
+locip() {
+    ip -h a | grep inet | awk '{print $2}' | cut -d '/' -f 1 | grep -vE '127\.0\.0\.1|::1'
+}
+
+# IP info function
+function ipinfo() {
+  curl -s ipinfo.io | jq .
+}
+
+# AWS type function
+function awstype() {
+  curl -s http://169.254.169.254/latest/meta-data/instance-type && echo
+}
+
+# Switch to log container directory function
+function logdir() {
+cd "/var/log/container/$1" || exit
+}
+
+# Finder function
+function ffind() {
+  sudo find "$2" -iname "*$1*"
 }
 
 # enable programmable completion features (you don't need to enable
