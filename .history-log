@@ -65,3 +65,4 @@
 2023-09-05 12:20:58 - Fix broken link in README
 2023-09-07 10:41:11 - Update copyright year
 2023-09-23 11:27:57 - Refactor utility helpers
+2023-10-01 10:18:56 - Remove dead code
