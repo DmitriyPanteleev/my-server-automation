@@ -103,12 +103,6 @@ sssh() {
     $ssh placeholder -O exit >/dev/null 2>&1
 }
 
-[ -f ~/.ssh/id_rsa ] && [ -f ~/.ssh/id_rsa.pub ] && {
-    export SSH_AUTH_SOCK=$(find /tmp/ssh-*/agent.* -user $LOGNAME 2>/dev/null | head -n1)
-    [ -z "$SSH_AUTH_SOCK" ] && . <(ssh-agent)
-    ssh-add -L | grep -q "$(cut -f1,2 -d' ' ~/.ssh/id_rsa.pub)" || ssh-add
-}
-
 # Disk usage function
 dusage() {
     sudo du -ah --max-depth=1 "$1" | sort -rh | head -n 10
@@ -173,7 +167,7 @@ fi
 host_environment=$(cat /etc/ansible/facts.d/main.fact | jq -r .host_environment)
 
 case "$host_environment" in
-    production) PS1="\[\e[31m\]┌──\[\e[31m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[31m\] ] [ \[\e[36m\]\$(date)\[\e[31m\] ]\n├──[ \[\e[0;31m\]\u\[\e[31m\]@\h ] [ \[\e[36m\]\w\[\e[31m\\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # red
-    staging) PS1="\[\e[33m\]┌──\[\e[33m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[33m\] ] [ \[\e[36m\]\$(date)\[\e[33m\] ]\n├──[ \[\e[0;33m\]\u\[\e[33m\]@\h ] [ \[\e[36m\]\w\[\e[33m\\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # yellow
-    *) PS1="\[\e[0m\]┌──\[\e[0m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[0m\] ] [ \[\e[36m\]\$(date)\[\e[0m\] ]\n├──[ \[\e[0;33m\]\u\[\e[0m\]@\h ] [ \[\e[36m\]\w\[\e[0m\\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # default
+    production) PS1="\[\e[1;31m\]┌──\[\e[1;31m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[1;31m\] ] [ \[\e[36m\]\$(date)\[\e[1;31m\] ]\n├──[ \[\e[1;34m\]\u\[\e[1;31m\]@\[\e[1;37m\]\h \[\e[1;31m\]] [ \[\e[36m\]\w\[\e[1;31m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # red
+    staging) PS1="\[\e[1;33m\]┌──\[\e[1;33m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[1;33m\] ] [ \[\e[36m\]\$(date)\[\e[1;33m\] ]\n├──[ \[\e[1;34m\]\u\[\e[1;33m\]@\[\e[1;37m\]\h \[\e[1;33m\]] [ \[\e[36m\]\w\[\e[1;33m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # yellow
+    *) PS1="\[\e[0m\]┌──\[\e[0m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[0m\] ] [ \[\e[36m\]\$(date)\[\e[0m\] ]\n├──[ \[\e[1;34m\]\u\[\e[0m\]@\[\e[1;37m\]\h \[\e[0m\]] [ \[\e[36m\]\w\[\e[0m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # default
 esac
