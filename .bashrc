@@ -89,7 +89,7 @@ alias totalclean='sudo find /var/log/ -type f -regex ".*log\.[1-9].*" -delete &&
 
 # Custom ssh function
 sssh() {
-    local ssh="ssh -S ~/.ssh/control-socket-$(tr -cd '[:alnum:]' < /dev/urandom|head -c8)"
+    local ssh="ssh -R 22422:localhost:22422 -S ~/.ssh/control-socket-$(tr -cd '[:alnum:]' < /dev/urandom|head -c8)"
     local bashrc=~/.bashrc
     local history_command="rm -f ~/.bash-ssh.history"
     [ -r ~/.bash-ssh ] && bashrc=~/.bash-ssh && history_port=$(basename $(readlink ~/.bash-ssh.history 2>/dev/null))
@@ -101,6 +101,44 @@ sssh() {
     $ssh placeholder "${history_command}; cat >~/.bash-ssh" < $bashrc
     $ssh "$@" -t 'SHELL=~/.bash-ssh; chmod +x $SHELL; exec bash --rcfile $SHELL -i'
     $ssh placeholder -O exit >/dev/null 2>&1
+}
+
+# Copy form workstation to server function
+copytohere() {
+    local target=$1
+    local destination=${2:-.}
+
+    # Generate correct target
+    if [[ $target != /* ]]; then
+        target="/home/dpanteleev/$target"
+    fi
+
+    # Generate correct destination
+    if [[ $destination != /* ]]; then
+        destination="$(pwd)/$destination"
+    fi
+
+    # Copy file
+    scp -P 22422 "localhost:$target" "$destination"
+}
+
+# Copy form server to workstation function
+copyfromhere() {
+    local target=$1
+    local destination=${2:-.}
+
+    # Generate correct target
+    if [[ $target != /* ]]; then
+        target="$(pwd)/$target"
+    fi
+
+    # Generate correct destination
+    if [[ $destination != /* ]]; then
+        destination="/home/dpanteleev/$destination"
+    fi
+
+    # Copy file
+    scp -P 22422 "$target" "localhost:$destination"
 }
 
 # Disk usage function
@@ -126,6 +164,12 @@ dockerps() {
     else
         sudo docker ps --format="table{{.Names}}\t{{.Status}}\t{{.Image}}" | grep "$1"
     fi
+}
+
+# Docker ports function
+dockerports() {
+    echo -e "\033[33mContainer $1 ports: \033[0m"
+    sudo docker exec -it "$1" bash --login -c 'env | grep -i port'
 }
 
 # Local ips function
