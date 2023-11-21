@@ -103,6 +103,41 @@ sssh() {
     $ssh placeholder -O exit >/dev/null 2>&1
 }
 
+# Create branch and merge request function
+bramerge() {
+    # Create prepared string
+    local new_branch=$1
+    local prefix="" middle_part="" suffix="" prepared_string=""
+    local repo_name="" current_branch="" repo_id=""
+    prefix=$(echo "${new_branch}" | cut -d'-' -f1 | tr '[:lower:]' '[:upper:]')
+    middle_part=$(echo "${new_branch}" | cut -d'-' -f2)
+    suffix=$(echo "${new_branch}" | cut -d'-' -f3-)
+    prepared_string="${prefix}-${middle_part}: ${suffix}"
+
+    # Get current branch name
+    repo_name=$(basename "$(pwd)")
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+    # Create branch and publish it
+    git checkout -b "${new_branch}" > /dev/null
+    git push -u origin "${new_branch}" > /dev/null 2>&1
+
+    # Get repo id
+    repo_id=$(curl -s --header "PRIVATE-TOKEN:secret-token" "https://git.xtools.tv/api/v4/projects?search=${repo_name}" | jq -r '.[0].id')
+
+    # Create merge request
+    merge_url=$(curl -s --request POST --header "PRIVATE-TOKEN:secret-token" --header "Content-Type: application/json" \
+                --data "{
+                    \"source_branch\": \"${new_branch}\",
+                    \"target_branch\": \"${current_branch}\",
+                    \"title\": \"${prepared_string}\",
+                    \"description\": \"${prepared_string}\"
+                    }" \
+                "https://git.xtools.tv/api/v4/projects/${repo_id}/merge_requests" | jq -r '.web_url')
+    echo "${merge_url}"
+
+}
+
 # Copy form workstation to server function
 copytohere() {
     local target=$1
