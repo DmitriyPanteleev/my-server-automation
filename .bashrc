@@ -131,7 +131,8 @@ bramerge() {
                     \"source_branch\": \"${new_branch}\",
                     \"target_branch\": \"${current_branch}\",
                     \"title\": \"${prepared_string}\",
-                    \"description\": \"${prepared_string}\"
+                    \"description\": \"${prepared_string}\",
+                    \"remove_source_branch\": \"true\"
                     }" \
                 "https://git.xtools.tv/api/v4/projects/${repo_id}/merge_requests" | jq -r '.web_url')
     echo "${merge_url}"
