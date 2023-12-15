@@ -79,6 +79,8 @@ if [ -f ~/.bash_aliases ]; then
 fi
 
 # Common usefull aliases
+alias ..='cd ..'
+alias ...='cd ../..'
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 alias bcat='batcat --paging=never'
@@ -137,6 +139,8 @@ bramerge() {
                 "https://git.xtools.tv/api/v4/projects/${repo_id}/merge_requests" | jq -r '.web_url')
     echo "${merge_url}"
 
+    # Create comment into Jira task
+    curl -s -u mylogin:mypass -X POST --data "{ \"body\": \"${merge_url}\" }" -H "Content-Type: application/json" https://jira.xtools.tv/rest/api/2/issue/${prefix}-${middle_part}/comment > /dev/null
 }
 
 # Copy form workstation to server function
