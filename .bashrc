@@ -87,6 +87,7 @@ alias bcat='batcat --paging=never'
 alias hists='history | cut -f3-'
 alias veros='cat /etc/*rel*'
 alias outip='curl -s ipinfo.io | jq -r .ip'
+alias dockerattach='sudo attach-docker $1'
 alias totalclean='sudo find /var/log/ -type f -regex ".*log\.[1-9].*" -delete && sudo find /var/log/atop -type f -mtime +0 -delete && sudo find /var/log/container -type f -mtime +30 -delete && sudo journalctl --rotate && sudo journalctl --vacuum-time=1s && sudo docker system prune -af --volumes'
 
 # Custom ssh function
@@ -125,10 +126,10 @@ bramerge() {
     git push -u origin "${new_branch}" > /dev/null 2>&1
 
     # Get repo id
-    repo_id=$(curl -s --header "PRIVATE-TOKEN:secret-token" "https://git.xtools.tv/api/v4/projects?search=${repo_name}" | jq -r '.[0].id')
+    repo_id=$(curl -s --header "PRIVATE-TOKEN:secret_token" "https://git.xtools.tv/api/v4/projects?search=${repo_name}" | jq -r '.[0].id')
 
     # Create merge request
-    merge_url=$(curl -s --request POST --header "PRIVATE-TOKEN:secret-token" --header "Content-Type: application/json" \
+    merge_url=$(curl -s --request POST --header "PRIVATE-TOKEN:secret_token" --header "Content-Type: application/json" \
                 --data "{
                     \"source_branch\": \"${new_branch}\",
                     \"target_branch\": \"${current_branch}\",
@@ -140,7 +141,22 @@ bramerge() {
     echo "${merge_url}"
 
     # Create comment into Jira task
-    curl -s -u mylogin:mypass -X POST --data "{ \"body\": \"${merge_url}\" }" -H "Content-Type: application/json" https://jira.xtools.tv/rest/api/2/issue/${prefix}-${middle_part}/comment > /dev/null
+    curl -s -u dpanteleev:super_password -X POST --data "{ \"body\": \"${merge_url}\" }" -H "Content-Type: application/json" https://jira.xtools.tv/rest/api/2/issue/${prefix}-${middle_part}/comment > /dev/null
+}
+
+# Squash commits function
+squashme() {
+    # Get current branch name
+    repo_name=$(basename "$(pwd)")
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    # Working with gitlab api
+    repo_id=$(curl -s --header "PRIVATE-TOKEN:secret_token" "https://git.xtools.tv/api/v4/projects?search=${repo_name}" | jq -r '.[0].id')
+    last_mr=$(curl -s --header "PRIVATE-TOKEN:secret_token" "https://git.xtools.tv/api/v4/projects/${repo_id}/merge_requests?source_branch=${current_branch}&order_by=updated_at&sort=desc" | jq -r '.[0]')
+    target_branch=$(echo $last_mr | jq -r .target_branch)
+    source_branch=$(echo $last_mr | jq -r .source_branch)
+    reset_commit=$(git log $(git merge-base "${target_branch}" "${source_branch}").."${source_branch}" --reverse --pretty=format:'%H' | head -n 1)
+    # Perform squash
+    git reset "${reset_commit}" && git add . && git commit --amend --no-edit && git push --force
 }
 
 # Copy form workstation to server function
