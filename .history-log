@@ -75,3 +75,4 @@
 2023-12-17 12:19:57 - Optimize slow loop
 2024-01-08 20:20:51 - Handle edge case in parser
 2024-01-26 22:44:22 - Initial project scaffold
+2024-02-04 13:28:58 - Fix broken link in README
