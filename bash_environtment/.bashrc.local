@@ -1,0 +1,139 @@
+#!/bin/bash
+
+# My local aliases, functions and features
+
+# Export environment variables and other exports
+[ -f ~/environment ] && source ~/environment
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+# Custom aliases
+GRC="$(which grc)"
+if [ "$TERM" != dumb ] && [ -n "$GRC" ]; then
+    alias colourify="$GRC -es --colour=auto"
+    alias blkid='colourify blkid'
+    alias configure='colourify ./configure'
+    alias df='colourify df'
+    alias diff='colourify diff'
+    alias docker='colourify docker'
+    alias docker-machine='colourify docker-machine'
+    alias du='colourify du'
+    alias env='colourify env'
+    alias free='colourify free'
+    alias fdisk='colourify fdisk'
+    alias findmnt='colourify findmnt'
+    alias make='colourify make'
+    alias gcc='colourify gcc'
+    alias g++='colourify g++'
+    alias id='colourify id'
+    alias ip='colourify ip'
+    alias iptables='colourify iptables'
+    alias as='colourify as'
+    alias gas='colourify gas'
+    alias ld='colourify ld'
+    alias lsof='colourify lsof'
+    alias lsblk='colourify lsblk'
+    alias lspci='colourify lspci'
+    alias netstat='colourify netstat'
+    alias ping='colourify ping'
+    alias traceroute='colourify traceroute'
+    alias traceroute6='colourify traceroute6'
+    alias head='colourify head'
+    alias tail='colourify tail'
+    alias dig='colourify dig'
+    alias mount='colourify mount'
+    alias ps='colourify ps'
+    alias semanage='colourify semanage'
+    alias getsebool='colourify getsebool'
+    alias ifconfig='colourify ifconfig'
+    alias ss='colourify ss'
+fi
+
+alias gfp='git fetch && git pull'
+alias cht='/home/user/opt/CheatSh/cht.sh '
+
+# Custom ssh function
+sssh() {
+    local ssh="ssh -R 22422:localhost:22422 -S ~/.ssh/control-socket-$(tr -cd '[:alnum:]' < /dev/urandom|head -c8)"
+    local bashrc=~/.bashrc
+    local history_command="rm -f ~/.bash-ssh.history"
+    [ -r ~/.bash-ssh ] && bashrc=~/.bash-ssh && history_port=$(basename $(readlink ~/.bash-ssh.history 2>/dev/null))
+    $ssh -fNM "$@" || return $?
+    [ -n "$history_port" ] && {
+        local history_remote_port="$($ssh -O forward -R 0:127.0.0.1:$history_port placeholder)"
+        history_command="ln -nsf /dev/tcp/127.0.0.1/$history_remote_port ~/.bash-ssh.history"
+    }
+    $ssh placeholder "${history_command}; cat >~/.bash-ssh" < $bashrc
+    $ssh "$@" -t 'SHELL=~/.bash-ssh; chmod +x $SHELL; exec bash --rcfile $SHELL -i'
+    $ssh placeholder -O exit >/dev/null 2>&1
+}
+
+# Yet another ssh function
+jssh() {
+    ssh -i ~/.ssh/super.key superuser@"$1"
+}
+
+# Checkout brunch and update terminal
+gco() {
+    git checkout "$1"
+    bash
+}
+
+# Search pattern in git repository
+gitsearch() {
+    git log -G"$1" --all
+}
+
+# Create branch and merge request function
+bramerge() {
+    # Create prepared string
+    local new_branch=$1
+    local prefix="" middle_part="" suffix="" prepared_string=""
+    local repo_name="" current_branch="" repo_id=""
+    prefix=$(echo "${new_branch}" | cut -d'-' -f1 | tr '[:lower:]' '[:upper:]')
+    middle_part=$(echo "${new_branch}" | cut -d'-' -f2)
+    suffix=$(echo "${new_branch}" | cut -d'-' -f3-)
+    prepared_string="${prefix}-${middle_part}: ${suffix}"
+
+    # Get current branch name
+    repo_name=$(basename "$(pwd)")
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+    # Create branch and publish it
+    git checkout -b "${new_branch}" > /dev/null
+    git push -u origin "${new_branch}" > /dev/null 2>&1
+
+    # Get repo id
+    repo_id=$(curl -s --header "PRIVATE-TOKEN:$GITLAB_TOKEN" "$GITLAB_DOMAIN/api/v4/projects?search=${repo_name}" | jq -r ".[] | select(.name==\"${repo_name}\") | .id")
+    # Create merge request
+    merge_url=$(curl -s --request POST --header "PRIVATE-TOKEN:$GITLAB_TOKEN" --header "Content-Type: application/json" \
+                --data "{
+                    \"source_branch\": \"${new_branch}\",
+                    \"target_branch\": \"${current_branch}\",
+                    \"title\": \"${prepared_string}\",
+                    \"description\": \"${prepared_string}\",
+                    \"remove_source_branch\": \"true\"
+                    }" \
+                "$GITLAB_DOMAIN/api/v4/projects/${repo_id}/merge_requests" | jq -r '.web_url')
+    echo "${merge_url}"
+
+    # Create comment into Jira task
+    curl -s -u $LDAP_USER:$LDAP_PASS -X POST --data "{ \"body\": \"${merge_url}\" }" -H "Content-Type: application/json" $JIRA_DOMAIN/rest/api/2/issue/${prefix}-${middle_part}/comment > /dev/null
+    bash
+}
+
+# Squash commits function
+squashme() {
+    # Get current branch name
+    repo_name=$(basename "$(pwd)")
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    # Working with gitlab api
+    repo_id=$(curl -s --header "PRIVATE-TOKEN:$GITLAB_TOKEN" "$GITLAB_DOMAIN/api/v4/projects?search=${repo_name}" | jq -r ".[] | select(.name==\"${repo_name}\") | .id")
+    last_mr=$(curl -s --header "PRIVATE-TOKEN:$GITLAB_TOKEN" "$GITLAB_DOMAIN/api/v4/projects/${repo_id}/merge_requests?source_branch=${current_branch}&order_by=updated_at&sort=desc" | jq -r '.[0]')
+    target_branch=$(echo $last_mr | jq -r .target_branch)
+    source_branch=$(echo $last_mr | jq -r .source_branch)
+    reset_commit=$(git log $(git merge-base "${target_branch}" "${source_branch}").."${source_branch}" --reverse --pretty=format:'%H' | head -n 1)
+    # Perform squash
+    git reset "${reset_commit}" && git add . && git commit --amend --no-edit && git push --force
+}

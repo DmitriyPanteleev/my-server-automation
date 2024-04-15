@@ -1,0 +1,7 @@
+#!/bin/bash
+
+export LDAP_USER="user1"
+export LDAP_PASS="password"
+export GITLAB_DOMAIN="https://git.corp-domain.com"
+export GITLAB_TOKEN="token"
+export JIRA_DOMAIN="https://jira.corp-domain.com"

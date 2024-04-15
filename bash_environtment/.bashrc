@@ -68,96 +68,24 @@ update_eternal_history() {
 
 [[ "$PROMPT_COMMAND" == *update_eternal_history* ]] || PROMPT_COMMAND="update_eternal_history;$PROMPT_COMMAND"
 
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-
-# Add local aliases if local config exists
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
+# Add local aliases and function if local config exists
+if [ -f ~/.bashrc.local ]; then
+    . ~/.bashrc.local
 fi
 
 # Common usefull aliases
 alias ..='cd ..'
 alias ...='cd ../..'
+alias k='kubectl'
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 alias bcat='batcat --paging=never'
 alias hists='history | cut -f3-'
 alias veros='cat /etc/*rel*'
 alias outip='curl -s ipinfo.io | jq -r .ip'
-alias dockerattach='sudo attach-docker $1'
+alias dockerattach='sudo attach-docker'
+alias dockerstats='sudo docker stats --no-stream'
 alias totalclean='sudo find /var/log/ -type f -regex ".*log\.[1-9].*" -delete && sudo find /var/log/atop -type f -mtime +0 -delete && sudo find /var/log/container -type f -mtime +30 -delete && sudo journalctl --rotate && sudo journalctl --vacuum-time=1s && sudo docker system prune -af --volumes'
-
-# Custom ssh function
-sssh() {
-    local ssh="ssh -R 22422:localhost:22422 -S ~/.ssh/control-socket-$(tr -cd '[:alnum:]' < /dev/urandom|head -c8)"
-    local bashrc=~/.bashrc
-    local history_command="rm -f ~/.bash-ssh.history"
-    [ -r ~/.bash-ssh ] && bashrc=~/.bash-ssh && history_port=$(basename $(readlink ~/.bash-ssh.history 2>/dev/null))
-    $ssh -fNM "$@" || return $?
-    [ -n "$history_port" ] && {
-        local history_remote_port="$($ssh -O forward -R 0:127.0.0.1:$history_port placeholder)"
-        history_command="ln -nsf /dev/tcp/127.0.0.1/$history_remote_port ~/.bash-ssh.history"
-    }
-    $ssh placeholder "${history_command}; cat >~/.bash-ssh" < $bashrc
-    $ssh "$@" -t 'SHELL=~/.bash-ssh; chmod +x $SHELL; exec bash --rcfile $SHELL -i'
-    $ssh placeholder -O exit >/dev/null 2>&1
-}
-
-# Create branch and merge request function
-bramerge() {
-    # Create prepared string
-    local new_branch=$1
-    local prefix="" middle_part="" suffix="" prepared_string=""
-    local repo_name="" current_branch="" repo_id=""
-    prefix=$(echo "${new_branch}" | cut -d'-' -f1 | tr '[:lower:]' '[:upper:]')
-    middle_part=$(echo "${new_branch}" | cut -d'-' -f2)
-    suffix=$(echo "${new_branch}" | cut -d'-' -f3-)
-    prepared_string="${prefix}-${middle_part}: ${suffix}"
-
-    # Get current branch name
-    repo_name=$(basename "$(pwd)")
-    current_branch=$(git rev-parse --abbrev-ref HEAD)
-
-    # Create branch and publish it
-    git checkout -b "${new_branch}" > /dev/null
-    git push -u origin "${new_branch}" > /dev/null 2>&1
-
-    # Get repo id
-    repo_id=$(curl -s --header "PRIVATE-TOKEN:secret_token" "https://git.xtools.tv/api/v4/projects?search=${repo_name}" | jq -r '.[0].id')
-
-    # Create merge request
-    merge_url=$(curl -s --request POST --header "PRIVATE-TOKEN:secret_token" --header "Content-Type: application/json" \
-                --data "{
-                    \"source_branch\": \"${new_branch}\",
-                    \"target_branch\": \"${current_branch}\",
-                    \"title\": \"${prepared_string}\",
-                    \"description\": \"${prepared_string}\",
-                    \"remove_source_branch\": \"true\"
-                    }" \
-                "https://git.xtools.tv/api/v4/projects/${repo_id}/merge_requests" | jq -r '.web_url')
-    echo "${merge_url}"
-
-    # Create comment into Jira task
-    curl -s -u dpanteleev:super_password -X POST --data "{ \"body\": \"${merge_url}\" }" -H "Content-Type: application/json" https://jira.xtools.tv/rest/api/2/issue/${prefix}-${middle_part}/comment > /dev/null
-}
-
-# Squash commits function
-squashme() {
-    # Get current branch name
-    repo_name=$(basename "$(pwd)")
-    current_branch=$(git rev-parse --abbrev-ref HEAD)
-    # Working with gitlab api
-    repo_id=$(curl -s --header "PRIVATE-TOKEN:secret_token" "https://git.xtools.tv/api/v4/projects?search=${repo_name}" | jq -r '.[0].id')
-    last_mr=$(curl -s --header "PRIVATE-TOKEN:secret_token" "https://git.xtools.tv/api/v4/projects/${repo_id}/merge_requests?source_branch=${current_branch}&order_by=updated_at&sort=desc" | jq -r '.[0]')
-    target_branch=$(echo $last_mr | jq -r .target_branch)
-    source_branch=$(echo $last_mr | jq -r .source_branch)
-    reset_commit=$(git log $(git merge-base "${target_branch}" "${source_branch}").."${source_branch}" --reverse --pretty=format:'%H' | head -n 1)
-    # Perform squash
-    git reset "${reset_commit}" && git add . && git commit --amend --no-edit && git push --force
-}
 
 # Copy form workstation to server function
 copytohere() {
@@ -166,7 +94,7 @@ copytohere() {
 
     # Generate correct target
     if [[ $target != /* ]]; then
-        target="/home/dpanteleev/$target"
+        target="/home/user/$target"
     fi
 
     # Generate correct destination
@@ -190,7 +118,7 @@ copyfromhere() {
 
     # Generate correct destination
     if [[ $destination != /* ]]; then
-        destination="/home/dpanteleev/$destination"
+        destination="/home/user/$destination"
     fi
 
     # Copy file
@@ -266,8 +194,16 @@ fi
 
 host_environment=$(cat /etc/ansible/facts.d/main.fact | jq -r .host_environment)
 
+if git status &> /dev/null; then
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    host_environment="git-repo"
+else
+    current_branch=""
+fi
+
 case "$host_environment" in
-    production) PS1="\[\e[1;31m\]┌──\[\e[1;31m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[1;31m\] ] [ \[\e[36m\]\$(date)\[\e[1;31m\] ]\n├──[ \[\e[1;34m\]\u\[\e[1;31m\]@\[\e[1;37m\]\h \[\e[1;31m\]] [ \[\e[36m\]\w\[\e[1;31m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # red
-    staging) PS1="\[\e[1;33m\]┌──\[\e[1;33m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[1;33m\] ] [ \[\e[36m\]\$(date)\[\e[1;33m\] ]\n├──[ \[\e[1;34m\]\u\[\e[1;33m\]@\[\e[1;37m\]\h \[\e[1;33m\]] [ \[\e[36m\]\w\[\e[1;33m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # yellow
-    *) PS1="\[\e[0m\]┌──\[\e[0m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C $(free -m | awk 'FNR==2{printf "%d", $7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[0m\] ] [ \[\e[36m\]\$(date)\[\e[0m\] ]\n├──[ \[\e[1;34m\]\u\[\e[0m\]@\[\e[1;37m\]\h \[\e[0m\]] [ \[\e[36m\]\w\[\e[0m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # default
+    production) PS1="\[\e[1;31m\]┌──\[\e[1;31m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C \$(free -m | awk 'FNR==2{printf \"%d\", \$7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[1;31m\] ] [ \[\e[36m\]\$(date)\[\e[1;31m\] ]\n├──[ \[\e[1;34m\]\u\[\e[1;31m\]@\[\e[1;37m\]\h \[\e[1;31m\]] [ \[\e[36m\]\w\[\e[1;31m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # red
+    staging) PS1="\[\e[1;33m\]┌──\[\e[1;33m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C \$(free -m | awk 'FNR==2{printf \"%d\", \$7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[1;33m\] ] [ \[\e[36m\]\$(date)\[\e[1;33m\] ]\n├──[ \[\e[1;34m\]\u\[\e[1;33m\]@\[\e[1;37m\]\h \[\e[1;33m\]] [ \[\e[36m\]\w\[\e[1;33m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # yellow
+    git-repo) PS1="\[\e[1;0m\]┌──\[\e[1;0m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C \$(free -m | awk 'FNR==2{printf \"%d\", \$7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[1;0m\] ] [ \[\e[36m\]\$(date)\[\e[1;0m\] ]\n├──[ \[\e[1;34m\]\u\[\e[1;0m\]@\[\e[1;37m\]\h \[\e[1;0m\]] [ \[\e[36m\]\w\[\e[1;0m\] ] [ \[\e[31m\]\$(echo $current_branch)\[\e[1;0m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # colour branch
+    *) PS1="\[\e[0m\]┌──\[\e[0m\][ \[\e[35m\]\$(cat /proc/loadavg | cut -d' ' -f 1-3) $(grep 'processor' /proc/cpuinfo | wc -l)C \$(free -m | awk 'FNR==2{printf \"%d\", \$7}')/$(free -m | awk 'FNR==2{printf "%d", $2}')MB\[\e[0m\] ] [ \[\e[36m\]\$(date)\[\e[0m\] ]\n├──[ \[\e[1;34m\]\u\[\e[0m\]@\[\e[1;37m\]\h \[\e[0m\]] [ \[\e[36m\]\w\[\e[0m\] ]\n└> \[\e[1;35m\]~\[\e[0m\] " ;; # default
 esac
