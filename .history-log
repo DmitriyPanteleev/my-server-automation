@@ -85,3 +85,4 @@
 2024-04-28 11:42:12 - Add unit tests for core module
 2024-05-07 08:46:16 - Add configuration file
 2024-05-09 13:20:58 - Add configuration file
+2024-06-09 09:32:10 - Format code with linter
