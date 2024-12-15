@@ -102,3 +102,4 @@
 2024-11-26 18:25:04 - Add configuration file
 2024-12-02 15:15:46 - Add CI configuration
 2024-12-05 09:01:39 - Rename variables for clarity
+2024-12-15 10:02:41 - Improve error handling
