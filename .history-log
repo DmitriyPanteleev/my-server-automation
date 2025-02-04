@@ -105,3 +105,4 @@
 2024-12-15 10:02:41 - Improve error handling
 2025-01-09 19:20:50 - Cache expensive computation
 2025-01-20 19:27:05 - Refactor utility helpers
+2025-02-04 09:24:54 - Fix broken link in README
