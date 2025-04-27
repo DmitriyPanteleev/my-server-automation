@@ -112,3 +112,4 @@
 2025-03-13 20:12:50 - Improve test coverage
 2025-04-09 14:51:30 - Update dependencies
 2025-04-11 21:44:22 - Cache expensive computation
+2025-04-27 13:43:14 - Document public API
