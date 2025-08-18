@@ -122,3 +122,4 @@
 2025-07-11 22:14:52 - Add example usage to README
 2025-07-22 16:02:32 - Bump version
 2025-08-03 08:39:09 - Handle edge case in parser
+2025-08-18 21:58:36 - Add unit tests for core module
