@@ -123,3 +123,4 @@
 2025-07-22 16:02:32 - Bump version
 2025-08-03 08:39:09 - Handle edge case in parser
 2025-08-18 21:58:36 - Add unit tests for core module
+2025-08-20 11:26:56 - Add CI configuration
