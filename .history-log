@@ -127,3 +127,4 @@
 2025-09-01 12:19:50 - Add CI configuration
 2025-09-03 20:12:51 - Add configuration file
 2025-09-19 20:35:06 - Fix off-by-one error
+2025-10-17 15:16:46 - Add example usage to README
