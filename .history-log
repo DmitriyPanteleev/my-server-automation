@@ -130,3 +130,4 @@
 2025-10-17 15:16:46 - Add example usage to README
 2025-10-27 17:18:48 - Format code with linter
 2025-11-26 11:48:26 - Update dependencies
+2025-11-28 22:29:07 - Handle edge case in parser
