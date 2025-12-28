@@ -132,3 +132,4 @@
 2025-11-26 11:48:26 - Update dependencies
 2025-11-28 22:29:07 - Handle edge case in parser
 2025-12-26 09:16:55 - Fix flaky test
+2025-12-28 08:23:54 - Add README with basic description
