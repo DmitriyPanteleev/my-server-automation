@@ -3,6 +3,13 @@
 MAX_JOBS=4
 TASK_QUEUE=()
 
+# Функция для ожидания завершения задач
+wait_for_jobs() {
+  while (( $(jobs -r | wc -l) >= MAX_JOBS )); do
+    sleep 1
+  done
+}
+
 # Функция добавления задач в очередь
 add_task() {
   TASK_QUEUE+=("$1")
