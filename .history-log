@@ -138,3 +138,4 @@
 2026-02-06 12:57:27 - Add example usage to README
 2026-02-09 13:58:28 - Improve test coverage
 2026-02-24 11:41:11 - Add unit tests for core module
+2026-03-16 16:46:17 - Simplify conditional logic
